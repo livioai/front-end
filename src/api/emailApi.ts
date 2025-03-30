@@ -9,8 +9,10 @@ const emailApi = {
 
     const data = await response.json();
 
-    // Gestione robusta in base alla struttura ricevuta
-    return Array.isArray(data) ? data : data.emails || [];
+    // ✅ Combina le email "interested" e "not_interested"
+    const emails = [...(data.interested || []), ...(data.not_interested || [])];
+
+    return emails;
   },
 
   generateAIResponse: async (emailId: string) => {
