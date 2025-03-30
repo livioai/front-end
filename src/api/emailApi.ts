@@ -1,68 +1,32 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { Email } from "../types/email";
 
-// Funzione di sicurezza per prevenire crash su date non valide
-const safeDate = (d: string | null | undefined): string | null => {
-  const date = new Date(d || "");
-  return isNaN(date.getTime()) ? null : date.toISOString();
-};
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const emailApi = {
-  getUnreadEmails: async () => {
-    const response = await fetch(`${API_BASE_URL}/check-emails`);
-    if (!response.ok) {
-      throw new Error("Errore nel recupero delle email non lette");
-    }
+export async function getUnreadEmails(): Promise<Email[]> {
+  const response = await fetch(`${BASE_URL}/emails/unread`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
 
-    const data = await response.json();
+  if (!response.ok) {
+    throw new Error("Errore durante il recupero delle email non lette");
+  }
 
-    // Combina interested e not_interested + normalizza timestamp
-    const emails = [...(data.interested || []), ...(data.not_interested || [])]
-      .map(email => ({
-        ...email,
-        timestamp_created: safeDate(email.timestamp_created),
-        timestamp_email: safeDate(email.timestamp_email),
-      }));
+  return response.json();
+}
 
-    return emails;
-  },
+export async function sendEmail(email: Email): Promise<void> {
+  const response = await fetch(`${BASE_URL}/send-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(email),
+  });
 
-  generateAIResponse: async (emailId: string) => {
-    const response = await fetch(`${API_BASE_URL}/generate-response`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email_id: emailId }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Errore nella generazione della risposta AI");
-    }
-
-    return await response.json();
-  },
-
-  sendEmail: async (emailId: string, responseText: string) => {
-    const response = await fetch(`${API_BASE_URL}/send-response`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email_id: emailId,
-        response: responseText,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error("Errore durante l'invio dell'email");
-    }
-  },
-
-  markAsRead: async (_emailId: string) => {
-    // Endpoint non presente nel backend attuale
-    console.warn("markAsRead non disponibile: endpoint mancante nel backend.");
-  },
-};
-
-export default emailApi;
+  if (!response.ok) {
+    throw new Error("Errore durante l'invio dell'email");
+  }
+}
