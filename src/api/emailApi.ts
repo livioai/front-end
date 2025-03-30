@@ -6,7 +6,11 @@ const emailApi = {
     if (!response.ok) {
       throw new Error("Errore nel recupero delle email non lette");
     }
-    return await response.json();
+
+    const data = await response.json();
+
+    // Gestione robusta in base alla struttura ricevuta
+    return Array.isArray(data) ? data : data.emails || [];
   },
 
   generateAIResponse: async (emailId: string) => {
@@ -17,9 +21,11 @@ const emailApi = {
       },
       body: JSON.stringify({ email_id: emailId }),
     });
+
     if (!response.ok) {
       throw new Error("Errore nella generazione della risposta AI");
     }
+
     return await response.json();
   },
 
@@ -34,14 +40,15 @@ const emailApi = {
         response: responseText,
       }),
     });
+
     if (!response.ok) {
       throw new Error("Errore durante l'invio dell'email");
     }
   },
 
   markAsRead: async (_emailId: string) => {
-    // backend attuale non ha endpoint per marcare come letta
-    console.warn("Endpoint /mark_as_read non disponibile nel backend attuale.");
+    // Endpoint non presente nel backend attuale
+    console.warn("markAsRead non disponibile: endpoint mancante nel backend.");
   },
 };
 
