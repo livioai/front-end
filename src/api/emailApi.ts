@@ -6,25 +6,30 @@ const safeDate = (d: string | null | undefined): string | null => {
   return isNaN(date.getTime()) ? null : date.toISOString();
 };
 
-const emailApi = {
-  getUnreadEmails: async () => {
-    const response = await fetch(`${API_BASE_URL}/check-emails`);
-    if (!response.ok) {
-      throw new Error("Errore nel recupero delle email non lette");
-    }
+getUnreadEmails: async () => {
+  const response = await fetch(`${API_BASE_URL}/emails/unread`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-    const data = await response.json();
+  if (!response.ok) {
+    throw new Error("Errore nel recupero delle email non lette");
+  }
 
-    // Combina interested e not_interested + normalizza timestamp
-    const emails = [...(data.interested || []), ...(data.not_interested || [])]
-      .map(email => ({
-        ...email,
-        timestamp_created: safeDate(email.timestamp_created),
-        timestamp_email: safeDate(email.timestamp_email),
-      }));
+  const data = await response.json();
 
-    return emails;
-  },
+  // Combina interested e not_interested + normalizza timestamp
+  const emails = [...(data.interested || []), ...(data.not_interested || [])]
+    .map(email => ({
+      ...email,
+      timestamp_created: safeDate(email.timestamp_created),
+      timestamp_email: safeDate(email.timestamp_email),
+    }));
+
+  return emails;
+},
 
   generateAIResponse: async (emailId: string) => {
     const response = await fetch(`${API_BASE_URL}/generate-response`, {
