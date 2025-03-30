@@ -14,7 +14,7 @@ export interface EmailResponse {
   content: string;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_URL = import.meta.env.VITE_API_URL || "VITE_API_URL=https://aiemailresponder.onrender.com";
 
 const client = axios.create({
   baseURL: API_URL,
