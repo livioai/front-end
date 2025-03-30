@@ -1,5 +1,11 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+// Funzione di sicurezza per prevenire crash su date non valide
+const safeDate = (d: string | null | undefined): string | null => {
+  const date = new Date(d || "");
+  return isNaN(date.getTime()) ? null : date.toISOString();
+};
+
 const emailApi = {
   getUnreadEmails: async () => {
     const response = await fetch(`${API_BASE_URL}/check-emails`);
@@ -9,8 +15,13 @@ const emailApi = {
 
     const data = await response.json();
 
-    // ✅ Combina le email "interested" e "not_interested"
-    const emails = [...(data.interested || []), ...(data.not_interested || [])];
+    // Combina interested e not_interested + normalizza timestamp
+    const emails = [...(data.interested || []), ...(data.not_interested || [])]
+      .map(email => ({
+        ...email,
+        timestamp_created: safeDate(email.timestamp_created),
+        timestamp_email: safeDate(email.timestamp_email),
+      }));
 
     return emails;
   },
